@@ -1,0 +1,264 @@
+document.addEventListener('DOMContentLoaded', function() {
+    alert("Ready!");
+}, false);
+
+let player = {
+  health: 10,
+  attack: 1,
+  attackXp: 0,
+  inv: [],
+  food: 0,
+};
+
+let playerHidden = {
+  potion: false,
+  glowingSword: false,
+  dead: false
+};
+
+let goblin = {
+  health: 5,
+  attack: 1,
+  killed: 0,
+};
+
+let redGoblin = {
+  health: 10,
+  attack: 3,
+  dead: false,
+};
+
+let goblinBoss = {
+  health: 50,
+  attack: 5,
+};
+
+const died =
+  "You have died. Gain levels or try equipping a weapon. Use Revive() to restart.";
+
+function revive() {
+  player.health = 10;
+  player.attack = 1;
+  player.attackXp = 0;
+  player.inv = [];
+  player.food = 1;
+  playerHidden.potion = false;
+  playerHidden.glowingSword = false;
+  goblin.killed = 0;
+  redGoblin.dead = false;
+  redGoblin.health = 10;
+  goblinBoss.health = 50;
+  return "You wake up from what felt like a bad dream with an extra piece of food.";
+}
+
+function goblinsKilled() {
+  return goblin.killed;
+}
+
+function checkInv() {
+  return player.inv;
+}
+
+function stats() {
+  return player;
+}
+
+function eat() {
+  if (player.food < 1) {
+    return "You have no more food";
+  } else if (player.food >= 1 && player.health <= 5) {
+    player.food = player.food - 1;
+    player.health = player.health + 5;
+    return (
+      "You eat the food and heal 5 health. You now have " +
+      player.health +
+      " health and " +
+      player.food +
+      " food left."
+    );
+  } else if (player.health > 5 && player.health < 10) {
+    healAmount = 10 - player.health;
+    player.food = player.food - 1;
+    player.health = 10;
+    return (
+      "You eat the food and heal " +
+      healAmount +
+      " health. You now have " +
+      player.health +
+      " health and " +
+      player.food +
+      " food left."
+    );
+    player.health = 10;
+  } else if (player.health >= 10) {
+    return "You are already max health.";
+  }
+}
+
+function drink() {
+  if (playerHidden.potion === true) {
+    player.attack = player.attack + 10;
+    player.inv.shift();
+    playerHidden.potion = false;
+    return "You drink the potion and feel considerably stronger.";
+  } else return "You have no potions.";
+}
+
+function levelUp() {
+  if (player.attackXp <= 15 && player.attackXp >= 0) {
+    player.food = player.food + 1;
+    return (
+      "You find some food. You need " +
+      (30 - player.attackXp) +
+      " xp to level up!"
+    );
+  } else if (player.attackXp >= 30 && player.attackXp < 35) {
+    player.attack = 2;
+    player.food = player.food + 1;
+    return "You find some food. You've reached level 2!";
+  } else if (player.attackXp >= 35 && player.attackXp <= 45) {
+    return "You need " + (60 - player.attackXp) + " xp to level up!";
+  } else if (player.attackXp >= 60 && player.attackXp < 75) {
+    player.attack = 3;
+    player.inv.push("Potion");
+    playerHidden.potion = true;
+    return "You've reached level 3! You find a potion on the floor.";
+  } else if (player.attackXp >= 75 && player.attackXp < 90) {
+    return "You need " + (90 - player.attackXp) + " xp to level up!";
+  } else if (player.attackXp >= 90 && player.attackXp < 100) {
+    player.attack = 4;
+    return "You've reached level 4! A red goblin appears but you feel weak";
+  } else if (player.attackXp >= 100 && player.attackXp < 115) {
+    return "You need " + (120 - player.attackXp) + " xp to level up!";
+  } else if (player.attackXp >= 120 && player.attackXp < 130) {
+    player.attack = 5;
+    return "Congratulations! You've reached the max level of 5!";
+  } else if (player.attackXp > 120) {
+    player.attack = 5;
+    return "You've reached max level. You might be strong enough to defeat the Goblin Boss.";
+  }
+}
+
+function equip() {
+  if (playerHidden.glowingSword === true) {
+    player.attack = player.attack + 20;
+    player.inv.shift();
+    playerHidden.glowingSword = false;
+    return "You wield the ominous sword and feel it's power surge into you";
+  } else if (playerHidden.glowingSword === false) {
+    return "You have nothing to equip.";
+  }
+}
+
+function attackGoblin() {
+  let gobXp = goblin.health * 3;
+  if (player.attack >= 1 && player.health > goblin.attack) {
+    player.attackXp = player.attackXp + gobXp;
+    player.health = player.health - goblin.attack;
+    goblin.killed = goblin.killed + 1;
+    return (
+      "Goblin died. You now have " +
+      player.health +
+      " health. You gained " +
+      gobXp +
+      " xp. " +
+      levelUp()
+    );
+  }
+}
+
+function attackRedGoblin() {
+  let redgobxp = redGoblin.health * 3;
+  if (
+    redGoblin.dead === false &&
+    player.attack >= redGoblin.health &&
+    player.health > redGoblin.attack
+  ) {
+    player.attackXp = player.attackXp + redgobxp;
+    player.health = player.health - redGoblin.attack;
+    player.inv.push("Glowing Sword");
+    playerHidden.glowingSword = true;
+    redGoblin.dead = true;
+    goblin.killed = goblin.killed + 1;
+    player.attack = player.attack - 10;
+    return (
+      "As the Red Goblin dies you feel normal again. You now have " +
+      player.health +
+      " health. It dropped a Glowing Sword. You gained " +
+      redgobxp +
+      " xp. " +
+      levelUp()
+    );
+  } else if (redGoblin.dead === true) {
+    return "You've already killed the Red Goblin.";
+  } else return died;
+}
+
+function attackGoblinBoss() {
+  if (player.health <= goblinBoss.attack && goblinBoss.health > player.attack) {
+    return died;
+  } else if (goblinBoss.health > player.attack) {
+    goblinBoss.health = goblinBoss.health - player.attack;
+    player.health = player.health - goblinBoss.attack;
+    return (
+      "Goblin Boss Health = " +
+      goblinBoss.health +
+      " You're health = " +
+      player.health
+    );
+  } else if (
+    player.attack >= goblinBoss.health &&
+    player.health <= goblinBoss.attack
+  ) {
+    return "As you defeat the Goblin Boss, he mutters under his last breathe 'you will join me in hell' as he grabs tight around your ankle and drags you into the depths with him. GAME OVER. revive(); to restart";
+  } else if (
+    goblinBoss.health <= player.attack &&
+    player.health > goblinBoss.attack
+  ) {
+    goblin.killed = goblin.killed + 1;
+    return (
+      "Congratulations you have defeated the Goblin Boss." +
+      "You killed " +
+      goblin.killed +
+      " goblins in total."
+    );
+  }
+}
+
+attackGoblin();
+attackGoblin();
+attackGoblin();
+attackGoblin();
+attackGoblin();
+attackGoblin();
+drink();
+eat();
+attackRedGoblin();
+equip();
+eat();
+attackGoblinBoss();
+attackGoblinBoss();
+
+revive();
+attackGoblin();
+attackGoblin();
+attackGoblin();
+attackGoblin();
+attackGoblin();
+attackGoblin();
+drink();
+eat();
+attackRedGoblin();
+equip();
+attackGoblinBoss();
+eat();
+attackGoblinBoss();
+
+revive();
+attackGoblin();
+attackGoblin();
+attackGoblin();
+attackGoblin();
+attackGoblin();
+attackGoblin();
+attackRedGoblin();
